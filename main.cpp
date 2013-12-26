@@ -33,6 +33,16 @@ int main(const int argc, const char* argv[])
         std::cout << "WTF!?" << std::endl;
     }
 
+    if (!IsTuple<Tuple<int, float, double, char, std::string> >::value)
+    {
+        std::cout << "isTuple failed" << std::endl;
+    }
+
+    if (IsTuple<int>::value)
+    {
+        std::cout << "isTuple failed" << std::endl;
+    }
+
     tup1 = tup2;
 
     return 0;

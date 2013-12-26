@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2013 Janick Bernet
+Copyright (c) 2013 Janick Bernet, Christian Oberholzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ THE SOFTWARE.
 #if (!defined(_MSC_VER) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 template<typename... Args>
@@ -87,11 +88,20 @@ Tuple<Args...> make_tuple(Args... args)
     return std::make_tuple(std::move(args)...);
 }
 
+template <typename TypeT>
+struct IsTuple : std::false_type {};
+
+template <typename... Args>
+struct IsTuple<Tuple<Args...>> : std::true_type {};
+
 #else
 
 namespace impl
 {
     struct Empty {};
+
+    template<typename Arg0, typename Arg1 = ::impl::Empty, typename Arg2 = ::impl::Empty, typename Arg3 = ::impl::Empty, typename Arg4 = ::impl::Empty, typename Arg5 = ::impl::Empty, typename Arg6 = ::impl::Empty, typename Arg7 = ::impl::Empty, typename Arg8 = ::impl::Empty, typename Arg9 = ::impl::Empty>
+    class Tuple;
 
     template<int index, typename TupleT, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
     struct TupleInterfaceHelper;
@@ -175,9 +185,6 @@ namespace impl
         static type get(const TupleT& tup) { return tup.get5(); }
         static void set(TupleT& tup, const type& value) { tup.set5(value); }
     };
-
-    template<typename Arg0, typename Arg1 = ::impl::Empty, typename Arg2 = ::impl::Empty, typename Arg3 = ::impl::Empty, typename Arg4 = ::impl::Empty, typename Arg5 = ::impl::Empty, typename Arg6 = ::impl::Empty, typename Arg7 = ::impl::Empty, typename Arg8 = ::impl::Empty, typename Arg9 = ::impl::Empty>
-    class Tuple;
 
     template<typename Arg0>
     class Tuple<Arg0>
@@ -512,6 +519,18 @@ Tuple<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> make_tuple(const Arg0& arg0, const Arg
 {
     return Tuple<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>(arg0, arg1, arg2, arg3, arg4, arg5);
 }
+
+template <typename TypeT>
+struct IsTuple
+{
+    static const bool value = false;
+};
+
+template<typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+struct IsTuple<Tuple<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9> >
+{
+    static const bool value = true;
+};
 
 #endif
 #endif // TUPLE_H
