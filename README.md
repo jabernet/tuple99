@@ -1,0 +1,3 @@
+Implementation of a C++99 compatible tuple class.
+
+This is an implementation of a Tuple class like it was introduces in C++11, that is compatible with C++99. It is meant as a near drop-in replacement for the std::tuple class, with the exception of providing get and set methods instead of std::get. There's also the limitation of only allowing a maximum of 10 tuple values, which should not be an issue in practice. The current implementation only provides up to 5 and does also not support comparison operators, but this shall be added in the future.
