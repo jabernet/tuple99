@@ -31,37 +31,39 @@ THE SOFTWARE.
 template<typename... Args>
 class Tuple: public std::tuple<Args...>
 {
+    typedef std::tuple<Args...> stdtuple;
+
 public:
     static const int size = sizeof...(Args);
 
     Tuple() {}
 
     Tuple(Args... args)
-        : std::tuple<Args...>(std::move(args)...) 
+        : stdtuple(std::move(args)...)
     {}
 
-    Tuple(const std::tuple<Args...>& t)
-        : std::tuple<Args...>(t)
+    Tuple(const stdtuple& t)
+        : stdtuple(t)
     {}
 
-    Tuple(std::tuple<Args...>&& t)
-        : std::tuple<Args...>(t)
-    {}   
+    Tuple(stdtuple&& t)
+        : stdtuple(t)
+    {}
 
     template<int index>
-    typename std::tuple_element<index, std::tuple<Args...>>::type get() const
+    typename std::tuple_element<index, stdtuple>::type get() const
     {
         return std::get<index>(*this);
     }
 
     template<int index>
-    void set(typename std::tuple_element<index, std::tuple<Args...>>::type&& value)
+    void set(typename std::tuple_element<index, stdtuple>::type&& value)
     {
         std::get<index>(*this) = std::move(value);
     }
 
     template<int index>
-    void set(const typename std::tuple_element<index, std::tuple<Args...>>::type& value)
+    void set(const typename std::tuple_element<index, stdtuple>::type& value)
     {
         std::get<index>(*this) = value;
     }
@@ -95,6 +97,11 @@ namespace impl
         };
 
     public:
+        bool operator!=(const TupleInterface& other) const
+        {
+            return !(static_cast<const TupleT&>(*this) == static_cast<const TupleT&>(other));
+        }
+
         template<int index>
         typename Helper<index>::type get() const
         {
@@ -158,11 +165,18 @@ namespace impl
     class Tuple<Arg0>
     {
     public:
+        typedef Tuple<Arg0> This;
+
         Tuple() {}
 
         Tuple(const Arg0& arg0)
             : m_arg0(arg0)
         {}
+
+        bool operator==(const This& other) const
+        {
+            return m_arg0 == other.m_arg0;
+        }
 
     private:
         template<int, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename>
@@ -178,13 +192,22 @@ namespace impl
     template<typename Arg0, typename Arg1>
     class Tuple<Arg0, Arg1>: public Tuple<Arg0>
     {
+        typedef Tuple<Arg0, Arg1> This;
+        typedef Tuple<Arg0> Base;
+
     public:
         Tuple() {}
 
         Tuple(const Arg0& arg0, const Arg1& arg1)
-            : Tuple<Arg0>(arg0)
+            : Base(arg0)
             , m_arg1(arg1)
         {}
+
+        bool operator==(const This& other) const
+        {
+            return static_cast<const Base&>(*this) == static_cast<const Base&>(other)
+                && m_arg1 == other.m_arg1;
+        }
 
     private:
         template<int, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename>
@@ -200,13 +223,22 @@ namespace impl
     template<typename Arg0, typename Arg1, typename Arg2>
     class Tuple<Arg0, Arg1, Arg2>: public Tuple<Arg0, Arg1>
     {
+        typedef Tuple<Arg0, Arg1, Arg2> This;
+        typedef Tuple<Arg0, Arg1> Base;
+
     public:
         Tuple() {}
 
         Tuple(const Arg0& arg0, const Arg1& arg1, const Arg2& arg2)
-            : Tuple<Arg0, Arg1>(arg0, arg1)
+            : Base(arg0, arg1)
             , m_arg2(arg2)
         {}
+
+        bool operator==(const This& other) const
+        {
+            return static_cast<const Base&>(*this) == static_cast<const Base&>(other)
+                && m_arg2 == other.m_arg2;
+        }
 
     private:
         template<int, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename>
@@ -222,13 +254,22 @@ namespace impl
     template<typename Arg0, typename Arg1, typename Arg2, typename Arg3>
     class Tuple<Arg0, Arg1, Arg2, Arg3>: public Tuple<Arg0, Arg1, Arg2>
     {
+        typedef Tuple<Arg0, Arg1, Arg2, Arg3> This;
+        typedef Tuple<Arg0, Arg1, Arg2> Base;
+
     public:
         Tuple() {}
 
         Tuple(const Arg0& arg0, const Arg1& arg1, const Arg2& arg2, const Arg3& arg3)
-            : Tuple<Arg0, Arg1, Arg2>(arg0, arg1, arg2)
+            : Base(arg0, arg1, arg2)
             , m_arg3(arg3)
         {}
+
+        bool operator==(const This& other) const
+        {
+            return static_cast<const Base&>(*this) == static_cast<const Base&>(other)
+                && m_arg3 == other.m_arg3;
+        }
 
     private:
         template<int, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename>
@@ -244,13 +285,22 @@ namespace impl
     template<typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
     class Tuple<Arg0, Arg1, Arg2, Arg3, Arg4>: public Tuple<Arg0, Arg1, Arg2, Arg3>
     {
+        typedef Tuple<Arg0, Arg1, Arg2, Arg3, Arg4> This;
+        typedef Tuple<Arg0, Arg1, Arg2, Arg3> Base;
+
     public:
         Tuple() {}
 
         Tuple(const Arg0& arg0, const Arg1& arg1, const Arg2& arg2, const Arg3& arg3, const Arg4& arg4)
-            : Tuple<Arg0, Arg1, Arg2, Arg3>(arg0, arg1, arg2, arg3)
+            : Base(arg0, arg1, arg2, arg3)
             , m_arg4(arg4)
         {}
+
+        bool operator==(const This& other) const
+        {
+            return static_cast<const Base&>(*this) == static_cast<const Base&>(other)
+                && m_arg4 == other.m_arg4;
+        }
 
     private:
         template<int, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename>
@@ -266,13 +316,22 @@ namespace impl
     template<typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
     class Tuple<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>: public Tuple<Arg0, Arg1, Arg2, Arg3, Arg4>
     {
+        typedef Tuple<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> This;
+        typedef Tuple<Arg0, Arg1, Arg2, Arg3, Arg4> Base;
+
     public:
         Tuple() {}
 
         Tuple(const Arg0& arg0, const Arg1& arg1, const Arg2& arg2, const Arg3& arg3, const Arg4& arg4, const Arg5& arg5)
-            : Tuple<Arg0, Arg1, Arg2, Arg3, Arg4>(arg0, arg1, arg2, arg3, arg4)
+            : Base(arg0, arg1, arg2, arg3, arg4)
             , m_arg5(arg5)
         {}
+
+        bool operator==(const This& other) const
+        {
+            return static_cast<const Base&>(*this) == static_cast<const Base&>(other)
+                && m_arg5 == other.m_arg5;
+        }
 
     private:
         template<int, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename, typename>

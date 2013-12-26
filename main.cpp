@@ -23,12 +23,17 @@ int main(const int argc, const char* argv[])
 
     std::cout << tup1.get<0>() << " " << tup1.get<1>() << " " << tup1.get<2>() << " " << tup1.get<3>() << " " << tup1.get<4>() << std::endl;
 
-    /* not yet supported 
     if(tup1 == tup2)
     {
         std::cout << "WTF!?" << std::endl;
     }
-    */
+
+    if (tup1 != tup1)
+    {
+        std::cout << "WTF!?" << std::endl;
+    }
+
+    tup1 = tup2;
 
     return 0;
 }
