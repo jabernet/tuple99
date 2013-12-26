@@ -23,7 +23,57 @@ THE SOFTWARE.
 #ifndef TUPLE_H
 #define TUPLE_H
 
-#if (!defined(_MSC_VER) && __cplusplus < 201103L) || (defined(_MSC_VER) && _MSC_VER < 1800)
+#if (!defined(_MSC_VER) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
+
+#include <tuple>
+#include <utility>
+
+template<typename... Args>
+class Tuple: public std::tuple<Args...>
+{
+public:
+    static const int size = sizeof...(Args);
+
+    Tuple() {}
+
+    Tuple(Args... args)
+        : std::tuple<Args...>(std::move(args)...) 
+    {}
+
+    Tuple(const std::tuple<Args...>& t)
+        : std::tuple<Args...>(t)
+    {}
+
+    Tuple(std::tuple<Args...>&& t)
+        : std::tuple<Args...>(t)
+    {}   
+
+    template<int index>
+    typename std::tuple_element<index, std::tuple<Args...>>::type get() const
+    {
+        return std::get<index>(*this);
+    }
+
+    template<int index>
+    void set(typename std::tuple_element<index, std::tuple<Args...>>::type&& value)
+    {
+        std::get<index>(*this) = std::move(value);
+    }
+
+    template<int index>
+    void set(const typename std::tuple_element<index, std::tuple<Args...>>::type& value)
+    {
+        std::get<index>(*this) = value;
+    }
+};
+
+template<typename... Args>
+Tuple<Args...> make_tuple(Args... args)
+{
+    return std::make_tuple(std::move(args)...);
+}
+
+#else
 
 namespace impl
 {
@@ -384,56 +434,6 @@ template<typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Ar
 Tuple<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> make_tuple(const Arg0& arg0, const Arg1& arg1, const Arg2& arg2, const Arg3& arg3, const Arg4& arg4, const Arg5& arg5)
 {
     return Tuple<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>(arg0, arg1, arg2, arg3, arg4, arg5);
-}
-
-#else
-
-#include <tuple>
-#include <utility>
-
-template<typename... Args>
-class Tuple: public std::tuple<Args...>
-{
-public:
-    static const int size = sizeof...(Args);
-
-    Tuple() {}
-
-    Tuple(Args... args)
-        : std::tuple<Args...>(std::move(args)...) 
-    {}
-
-    Tuple(const std::tuple<Args...>& t)
-        : std::tuple<Args...>(t)
-    {}
-
-    Tuple(std::tuple<Args...>&& t)
-        : std::tuple<Args...>(t)
-    {}   
-
-    template<int index>
-    typename std::tuple_element<index, std::tuple<Args...>>::type get() const
-    {
-    	return std::get<index>(*this);
-    }
-
-    template<int index>
-    void set(typename std::tuple_element<index, std::tuple<Args...>>::type&& value)
-    {
-        std::get<index>(*this) = std::move(value);
-    }
-
-    template<int index>
-    void set(const typename std::tuple_element<index, std::tuple<Args...>>::type& value)
-    {
-        std::get<index>(*this) = value;
-    }
-};
-
-template<typename... Args>
-Tuple<Args...> make_tuple(Args... args)
-{
-    return std::make_tuple(std::move(args)...);
 }
 
 #endif
