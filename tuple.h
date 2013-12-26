@@ -34,8 +34,6 @@ class Tuple: public std::tuple<Args...>
     typedef std::tuple<Args...> stdtuple;
 
 public:
-    static const int size = sizeof...(Args);
-
     Tuple() {}
 
     Tuple(Args... args)
@@ -50,20 +48,34 @@ public:
         : stdtuple(t)
     {}
 
+
+    // number of elements
+    static const int size = sizeof...(Args);
+
+    // type of tuple element at index
     template<int index>
-    typename std::tuple_element<index, stdtuple>::type get() const
+    struct Element
+    {
+        typedef typename std::tuple_element<index, stdtuple>::type type;
+    };
+
+
+    // get tuple vlaue at index
+    template<int index>
+    typename Element<index>::type get() const
     {
         return std::get<index>(*this);
     }
 
+    // set tuple value at index
     template<int index>
-    void set(typename std::tuple_element<index, stdtuple>::type&& value)
+    void set(typename Element<index>::type&& value)
     {
         std::get<index>(*this) = std::move(value);
     }
 
     template<int index>
-    void set(const typename std::tuple_element<index, stdtuple>::type& value)
+    void set(const typename Element<index>::type& value)
     {
         std::get<index>(*this) = value;
     }
@@ -97,6 +109,12 @@ namespace impl
         };
 
     public:
+        template<int index>
+        struct Element
+        {
+            typedef typename Helper<index>::type type;
+        };
+
         bool operator!=(const TupleInterface& other) const
         {
             return !(static_cast<const TupleT&>(*this) == static_cast<const TupleT&>(other));
