@@ -28,90 +28,38 @@ THE SOFTWARE.
 template<typename TupleImpl>
 class TupleCommonT
 {
-    template<int pos>
-    struct Index { static const int value = pos; };
-
 public:
     // apply functor to each tumple element
     template<typename Functor>
-    void forEach(Functor& fun) const
-    {
-        forEachHelper(fun, Index<TupleImpl::size>());
-    }
+    void forEach(Functor& fun) const;
 
     // apply const functor to each tumple element
     template<typename Functor>
-    void forEach(const Functor& fun) const
-    {
-        forEachHelper(fun, Index<TupleImpl::size>());
-    }
+    void forEach(const Functor& fun) const;
 
 private:
-    class TupleStreamPrinter
-    {
-    public:
-        TupleStreamPrinter(std::ostream& stream)
-            : m_stream(stream)
-            , m_first(true)
-        {
-        }
+    class TupleStreamPrinter;
 
-        template<typename T>
-        void operator() (const T& t)
-        {
-            if(!m_first)
-            {
-                m_stream << " , ";
-            }
-            else
-            {
-                m_first = false;
-            }
-            m_stream << t;
-        }
-
-    private:
-        std::ostream& m_stream;
-        bool m_first;
-    };
+    template<int pos>
+    struct Index { static const int value = pos; };
 
     template<typename TupleT>
     friend std::ostream& operator <<(std::ostream& stream, const TupleCommonT<TupleT>& tuple);
 
-    std::ostream& printTo(std::ostream& stream) const
-    {
-        stream << "[ ";
-        TupleStreamPrinter printer(stream);
-        forEach(printer);
-        stream << " ]";
-        return stream;
-    }
+    std::ostream& printTo(std::ostream& stream) const;
 
     template<typename Functor, typename Idx>
-    void forEachHelper(Functor& fun, Idx) const
-    {
-        fun(static_cast<const TupleImpl*>(this)->template get<TupleImpl::size - Idx::value>());
-        forEachHelper(fun, Index<Idx::value - 1>());
-    }
+    void forEachHelper(Functor& fun, Idx) const;
 
     template<typename Functor, typename Idx>
-    void forEachHelper(const Functor& fun, Idx) const
-    {
-        fun(static_cast<const TupleImpl*>(this)->template get<TupleImpl::size - Idx::value>());
-        forEachHelper(fun, Index<Idx::value - 1>());
-    }
+    void forEachHelper(const Functor& fun, Idx) const;
 
     template<typename Functor>
-    void forEachHelper(Functor, Index<0>) const
-    {
-    }
+    void forEachHelper(Functor, Index<0>) const;
 };
 
 template<typename TupleT>
-std::ostream& operator <<(std::ostream& stream, const TupleCommonT<TupleT>& tuple)
-{
-    return tuple.printTo(stream);
-}
+std::ostream& operator <<(std::ostream& stream, const TupleCommonT<TupleT>& tuple);
 
 #if (!defined(_MSC_VER) && __cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 
@@ -125,16 +73,20 @@ class Tuple: public std::tuple<Args...>, public TupleCommonT<Tuple<Args...>>
     typedef std::tuple<Args...> stdtuple;
 
 public:
+    // empty tuple
     Tuple() {}
 
+    // tuple from arguments
     Tuple(Args... args)
         : stdtuple(std::move(args)...)
     {}
 
+    // tuple from std::tuple
     Tuple(const stdtuple& t)
         : stdtuple(t)
     {}
 
+    // tuple from std::tuple
     Tuple(stdtuple&& t)
         : stdtuple(t)
     {}
@@ -164,16 +116,13 @@ public:
         std::get<index>(*this) = std::move(value);
     }
 
+    // set tuple value at index
     template<int index>
     void set(const typename Element<index>::type& value)
     {
         std::get<index>(*this) = value;
     }
 };
-
-// needed for some reason to compile with gcc4.8 on Windows
-template<>
-class Tuple<> {};
 
 template<typename... Args>
 Tuple<Args...> make_tuple(Args... args)
@@ -626,4 +575,86 @@ struct IsTuple<Tuple<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>
 };
 
 #endif
+
+template<typename TupleImpl>
+class TupleCommonT<TupleImpl>::TupleStreamPrinter
+{
+public:
+    TupleStreamPrinter(std::ostream& stream)
+        : m_stream(stream)
+        , m_first(true)
+    {
+    }
+
+    template<typename T>
+    void operator() (const T& t)
+    {
+        if(!m_first)
+        {
+            m_stream << " , ";
+        }
+        else
+        {
+            m_first = false;
+        }
+        m_stream << t;
+    }
+
+private:
+    std::ostream& m_stream;
+    bool m_first;
+};
+
+template<typename TupleImpl>
+std::ostream& operator <<(std::ostream& stream, const TupleCommonT<TupleImpl>& tuple)
+{
+    return tuple.printTo(stream);
+}
+
+template<typename TupleImpl>
+template<typename Functor>
+void TupleCommonT<TupleImpl>::forEach(Functor& fun) const
+{
+    forEachHelper(fun, Index<TupleImpl::size>());
+}
+
+template<typename TupleImpl>
+template<typename Functor>
+void TupleCommonT<TupleImpl>::forEach(const Functor& fun) const
+{
+    forEachHelper(fun, Index<TupleImpl::size>());
+}
+
+template<typename TupleImpl>
+std::ostream& TupleCommonT<TupleImpl>::printTo(std::ostream& stream) const
+{
+    stream << "[ ";
+    TupleStreamPrinter printer(stream);
+    forEach(printer);
+    stream << " ]";
+    return stream;
+}
+
+template<typename TupleImpl>
+template<typename Functor, typename Idx>
+void TupleCommonT<TupleImpl>::forEachHelper(Functor& fun, Idx) const
+{
+    fun(static_cast<const TupleImpl*>(this)->template get<TupleImpl::size - Idx::value>());
+    forEachHelper(fun, Index<Idx::value - 1>());
+}
+
+template<typename TupleImpl>
+template<typename Functor, typename Idx>
+void TupleCommonT<TupleImpl>::forEachHelper(const Functor& fun, Idx) const
+{
+    fun(static_cast<const TupleImpl*>(this)->template get<TupleImpl::size - Idx::value>());
+    forEachHelper(fun, Index<Idx::value - 1>());
+}
+
+template<typename TupleImpl>
+template<typename Functor>
+void TupleCommonT<TupleImpl>::forEachHelper(Functor, Index<0>) const
+{
+}
+
 #endif // TUPLE_H
